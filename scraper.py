@@ -5,15 +5,22 @@ from csv import writer
 import pandas as pd
 import locale
 import threading
+from influxdb import InfluxDBClient
+
 locale.setlocale(locale.LC_ALL, '')
-#url open frequency
+
+# create influxdb client
+client_inf = InfluxDBClient('scraper_influxdb', 8086, 'root', 'root', 'corona')
+
+# url open frequency
 wait = 10
 
-#url to open
+# url to open
 url = 'https://covid19.saglik.gov.tr'
 
-def main(url):
-    #create client to open url
+
+def main(url, cli=client_inf):
+    # create client to open url
     client = uOp(url)
     html_cont = client.read()
     client.close()
@@ -23,14 +30,17 @@ def main(url):
     date_div = parse.findAll('div', {'class': 'takvim text-center'})
     date_list = date_div[0].findAll('p')
 
-    if 'İ' in date_list[1].text:
-        mnth_num = strptime(date_list[1].text.replace('İ', 'I'), '%B')
-    elif 'I' in date_list[1].text:
-        mnth_num = strptime(date_list[1].text.lower().replace('i', 'ı'), '%B')
-    else:
-        mnth_num = strptime(date_list[1].text, '%B')
+    mnth_dict = {'ocak': 1, 'şubat': 2, 'mart': 3, 'nisan': 4, 'mayıs': 5, 'haziran': 6, 'temmuz': 7, 'ağustos': 8,
+                 'eylül': 9, 'ekim': 10, 'kasım': 11, 'aralık': 12}
 
-    date = date_list[0].text + '.' + str(mnth_num.tm_mon) + '.' + date_list[2].text
+    if 'İ' in date_list[1].text:
+        mnth_num = mnth_dict[date_list[1].text.replace('İ', 'I').lower()]
+    elif 'I' in date_list[1].text:
+        mnth_num = mnth_dict[date_list[1].text.lower().replace('i', 'ı')]
+    else:
+        mnth_num = mnth_dict[date_list[1].text.lower()]
+
+    date = date_list[0].text + '.' + str(mnth_num) + '.' + date_list[2].text
 
     data_dict = {}
 
@@ -52,19 +62,26 @@ def main(url):
             csv_writer = writer(write_obj)
             csv_writer.writerow(list_of_elem)
 
-    fin_row = [date, data_dict['TOPLAM VAKA SAYISI'], data_dict['TOPLAM VEFAT SAYISI'],
-               data_dict['TOPLAM İYİLEŞEN HASTASAYISI'], data_dict['TOPLAM TEST SAYISI'],
-               data_dict['BUGÜNKÜ VAKA SAYISI'], data_dict['BUGÜNKÜ İYİLEŞEN SAYISI'], data_dict['BUGÜNKÜ TEST SAYISI']]
+    fin_json = [{
+        'measurement': 'corona',
+        'fields': {
+            'date': date,
+            'total_cases': data_dict['TOPLAM VAKA SAYISI'],
+            'total_death': data_dict['TOPLAM VEFAT SAYISI'],
+            'total_recovered': data_dict['TOPLAM İYİLEŞEN HASTASAYISI'],
+            'total_tests': data_dict['TOPLAM TEST SAYISI'],
+            'daily_cases': data_dict['BUGÜNKÜ VAKA SAYISI'],
+            'daily_recovered': data_dict['BUGÜNKÜ İYİLEŞEN SAYISI'],
+            'daily_tests': data_dict['BUGÜNKÜ TEST SAYISI']
+        }
+    }]
 
-    check_last_entry = pd.read_csv('corona.csv').iloc[-1].tolist()
+    check_last_entry_date = cli.query('select last(date) from corona')
 
-    if fin_row != check_last_entry:
-        append_to_csv('corona.csv', fin_row)
-        print(f'Appended!')
-        print(f'Last row: {check_last_entry}\n Fetched Row: {fin_row}')
+    if date != check_last_entry_date:
+        cli.write_points(fin_json)
     else:
-        print(f'Last row is equal to fetched row. Not appended!')
-        print(f'Last row: {check_last_entry}\nFetched Row: {fin_row}\n')
+        print(f'Last entry date is equal to fetched entry date. Not appended!')
 
 
 ticker = threading.Event()

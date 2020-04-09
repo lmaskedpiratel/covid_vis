@@ -1,0 +1,15 @@
+version: '3'
+services:
+  influxdb:
+    image: influxdb:1.5.4-alpine
+    ports:
+      - '8086:8086'
+    environment:
+      - INFLUXDB_DB=corona
+      - INFLUXDB_ADMIN_USER=root
+      - INFLUXDB_ADMIN_PASSWORD=root
+
+networks:
+  default:
+    external:
+      name: core_default

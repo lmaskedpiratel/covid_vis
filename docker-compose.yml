@@ -1,0 +1,9 @@
+version: '3'
+services:
+  scraper:
+    image: scraper
+
+networks:
+  default:
+    external:
+      name: core_default
