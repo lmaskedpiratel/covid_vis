@@ -64,8 +64,8 @@ def main(url, cli=client_inf):
 
     fin_json = [{
         'measurement': 'corona',
+        'time': date,
         'fields': {
-            'date': date,
             'total_cases': data_dict['TOPLAM VAKA SAYISI'],
             'total_death': data_dict['TOPLAM VEFAT SAYISI'],
             'total_recovered': data_dict['TOPLAM İYİLEŞEN HASTASAYISI'],
@@ -76,13 +76,16 @@ def main(url, cli=client_inf):
         }
     }]
 
-    check_last_entry_date = cli.query('select last(date) from corona')
+    try:
+        check_last_entry_date = cli.query('select last(total_cases) from corona')
+        check_last_entry_date = list(check_last_entry_date.get_points(measurement='corona'))[0]['time']
 
-    if date != check_last_entry_date:
-        cli.write_points(fin_json)
-    else:
-        print(f'Last entry date is equal to fetched entry date. Not appended!')
-
+        if date != check_last_entry_date:
+            cli.write_points(fin_json)
+        else:
+            print(f'Last entry date is equal to fetched entry date. Not appended!')
+    except:
+        print(f'Error!')
 
 ticker = threading.Event()
 while not ticker.wait(wait):
