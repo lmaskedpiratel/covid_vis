@@ -76,6 +76,7 @@ def main(url, cli=client_inf):
             'daily_cases': data_dict['BUGÜNKÜ VAKA SAYISI'],
             'daily_recovered': data_dict['BUGÜNKÜ İYİLEŞEN SAYISI'],
             'daily_tests': data_dict['BUGÜNKÜ TEST SAYISI']
+            'daily_death': data_dict['BUGÜNKÜ VEFAT SAYISI']
         }
     }]
 
