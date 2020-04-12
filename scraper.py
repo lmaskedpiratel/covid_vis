@@ -43,7 +43,7 @@ def main(url, cli=client_inf):
     else:
         mnth_num = mnth_dict[date_list[1].text.lower()]
 
-    date = date_list[2].text + '.' + str(mnth_num) + '.' + date_list[0].text
+    date = date_list[2].text + '-' + str(mnth_num) + '-' + date_list[0].text + 'T00:00:00Z'
 
     data_dict = {}
 
