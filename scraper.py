@@ -6,6 +6,9 @@ import pandas as pd
 import locale
 import threading
 from influxdb import InfluxDBClient
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s:%(message)s', level=logging.INFO, datefmt='%d/%m/%Y %H:%M:%S')
+_logger = logging.getLogger(__name__)
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -79,13 +82,19 @@ def main(url, cli=client_inf):
     try:
         check_last_entry_date = cli.query('select last(total_cases) from corona')
         check_last_entry_date = list(check_last_entry_date.get_points(measurement='corona'))[0]['time']
+        _logger(f'fetched date from DB')
+        if len(list(check_last_entry_date.get_points(measurement='corona'))) == 0:
+            cli.write_points(fin_json, time_precision='n')
+            _logger.info(f'First entry to the database has appended.')
+        elif len(list(check_last_entry_date.get_points(measurement='corona'))) > 0:
+            if date != check_last_entry_date:
+                cli.write_points(fin_json, time_precision='n')
+                _logger.info(f'Another entry appended. The date is {date}')
+            else:
+                _logger(f'Last entry date is equal to fetched date from web page. Not appended!')
+    except Exception as e:
+        _logger.error(f'Error! {e}')
 
-        if date != check_last_entry_date:
-            cli.write_points(fin_json)
-        else:
-            print(f'Last entry date is equal to fetched entry date. Not appended!')
-    except:
-        print(f'Error!')
 
 ticker = threading.Event()
 while not ticker.wait(wait):
