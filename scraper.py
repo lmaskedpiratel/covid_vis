@@ -75,8 +75,10 @@ def main(url, cli=client_inf):
             'total_tests': data_dict['TOPLAM TEST SAYISI'],
             'daily_cases': data_dict['BUGÜNKÜ VAKA SAYISI'],
             'daily_recovered': data_dict['BUGÜNKÜ İYİLEŞEN SAYISI'],
-            'daily_tests': data_dict['BUGÜNKÜ TEST SAYISI']
-            'daily_death': data_dict['BUGÜNKÜ VEFAT SAYISI']
+            'daily_tests': data_dict['BUGÜNKÜ TEST SAYISI'],
+            'daily_death': data_dict['BUGÜNKÜ VEFAT SAYISI'],
+            'total_ic_pat': data_dict['TOPLAM YOĞUNBAKIM HASTASAYISI'],
+            'total_intubated_pat': data_dict['TOPLAM ENTUBE HASTASAYISI']
         }
     }]
 
