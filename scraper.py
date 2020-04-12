@@ -87,12 +87,12 @@ def main(url, cli=client_inf):
             _logger.info(f'First entry to the database has appended.')
         elif len(list(check_last_entry_date.get_points(measurement='corona'))) > 0:
             check_last_entry_date = list(check_last_entry_date.get_points(measurement='corona'))[0]['time']
-            _logger(f'fetched date from DB {check_last_entry_date}')
+            _logger.info(f'fetched date from DB {check_last_entry_date}')
             if date != check_last_entry_date:
                 cli.write_points(fin_json, time_precision='n')
                 _logger.info(f'Another entry appended. The date is {date}')
             else:
-                _logger(f'Last entry date is equal to fetched date from web page. Not appended!')
+                _logger.info(f'Last entry date is equal to fetched date from web page. Not appended!')
     except Exception as e:
         _logger.error(f'Error! {e}')
 
