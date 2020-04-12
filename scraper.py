@@ -81,12 +81,13 @@ def main(url, cli=client_inf):
 
     try:
         check_last_entry_date = cli.query('select last(total_cases) from corona')
-        check_last_entry_date = list(check_last_entry_date.get_points(measurement='corona'))[0]['time']
-        _logger(f'fetched date from DB')
+
         if len(list(check_last_entry_date.get_points(measurement='corona'))) == 0:
             cli.write_points(fin_json, time_precision='n')
             _logger.info(f'First entry to the database has appended.')
         elif len(list(check_last_entry_date.get_points(measurement='corona'))) > 0:
+            check_last_entry_date = list(check_last_entry_date.get_points(measurement='corona'))[0]['time']
+            _logger(f'fetched date from DB {check_last_entry_date}')
             if date != check_last_entry_date:
                 cli.write_points(fin_json, time_precision='n')
                 _logger.info(f'Another entry appended. The date is {date}')
